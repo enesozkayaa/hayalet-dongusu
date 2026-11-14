@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<!--
+  Hayalet Döngüsü - uygulama simgesi. Adres sonuna ?boyut=512 yazılır.
+  PNG için: msedge --headless=new --user-data-dir=<geçici klasör> --hide-scrollbars --window-size=512,512 --screenshot=ikonlar/ikon-512.png "file:///.../araclar/ikon-ciz.html?boyut=512"
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<style>html, body { margin: 0; background: #2a2440; overflow: hidden; } canvas { display: block; }</style>
+</head>
+<body>
+<script>
+  const boyut = +(new URLSearchParams(location.search).get('boyut') || 512);
+  const c = document.createElement('canvas'); c.width = c.height = boyut; document.body.appendChild(c);
+  const g = c.getContext('2d'); g.scale(boyut / 512, boyut / 512);
+  // Gece göğü
+  const gok = g.createLinearGradient(0, 0, 0, 512); gok.addColorStop(0, '#3a2a7a'); gok.addColorStop(1, '#8a6ad8');
+  g.fillStyle = gok; g.fillRect(0, 0, 512, 512);
+  // Döngü oku (saat yönünün tersine)
+  g.strokeStyle = '#ffd23f'; g.lineWidth = 26; g.lineCap = 'round';
+  g.beginPath(); g.arc(256, 250, 200, -0.35 * Math.PI, 1.2 * Math.PI, false); g.stroke();
+  g.fillStyle = '#ffd23f'; g.save(); g.translate(256 + 200 * Math.cos(-0.35 * Math.PI), 250 + 200 * Math.sin(-0.35 * Math.PI)); g.rotate(-0.35 * Math.PI - 0.2);
+  g.beginPath(); g.moveTo(-40, -10); g.lineTo(30, -10); g.lineTo(-5, 45); g.closePath(); g.fill(); g.restore();
+  // Kale
+  g.fillStyle = '#9c958a';
+  g.fillRect(120, 250, 272, 170);
+  g.fillRect(100, 200, 70, 220); g.fillRect(342, 200, 70, 220);
+  for (let x = 120; x < 392; x += 34) g.fillRect(x, 232, 20, 22);
+  g.fillStyle = '#d8402a';
+  [[135, 200], [377, 200]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x - 46, y); g.lineTo(x + 46, y); g.lineTo(x, y - 80); g.closePath(); g.fill(); });
+  // Kapı
+  g.fillStyle = '#2a2440'; g.beginPath(); g.moveTo(216, 420); g.lineTo(216, 330); g.arc(256, 330, 40, Math.PI, 0); g.lineTo(296, 420); g.fill();
+  g.strokeStyle = '#555'; g.lineWidth = 5; for (let x = 226; x < 296; x += 16) { g.beginPath(); g.moveTo(x, 300); g.lineTo(x, 420); g.stroke(); }
+  // Hayalet cüce (yarı saydam)
+  g.globalAlpha = 0.85; g.fillStyle = '#c8e8ff';
+  g.beginPath(); g.arc(256, 170, 52, Math.PI, 0); g.lineTo(308, 250);
+  for (let i = 0; i < 4; i++) g.quadraticCurveTo(295 - i * 26, 270, 282 - i * 26, 250);
+  g.closePath(); g.fill();
+  g.globalAlpha = 1; g.fillStyle = '#a8acb4'; g.beginPath(); g.arc(256, 150, 46, Math.PI, 0); g.fill();   // miğfer
+  g.fillStyle = '#f0e6cf'; [[-1], [1]].forEach(([s]) => { g.beginPath(); g.moveTo(256 + s * 40, 140); g.lineTo(256 + s * 78, 100); g.lineTo(256 + s * 46, 152); g.fill(); });
+  g.fillStyle = '#2a2440'; g.beginPath(); g.arc(238, 178, 8, 0, 7); g.arc(274, 178, 8, 0, 7); g.fill();
+  g.fillStyle = '#e8e0d0'; g.beginPath(); g.moveTo(222, 196); g.lineTo(290, 196); g.lineTo(256, 262); g.closePath(); g.fill();   // sakal
+  // Çimen
+  g.fillStyle = '#4f8e3f'; g.fillRect(0, 420, 512, 92);
+</script>
+</body>
+</html>

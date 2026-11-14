@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Hayalet Döngüsü</title>
+  <meta name="description" content="Hayalet Döngüsü: cüceler kale kuşatıyor. Her tur zaman geri sarılır ve geçmiş turdaki hâlin hayalet olarak sana yardım eder.">
+  <meta name="theme-color" content="#2a2440">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="ikonlar/ikon-192.png">
+  <link rel="apple-touch-icon" href="ikonlar/ikon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="sahne"></canvas>
+
+  <!-- Giriş -->
+  <section id="giris" class="ekran">
+    <div class="kart">
+      <div class="baslik">HAYALET<br>DÖNGÜSÜ</div>
+      <p class="alt">Cüceler kale kuşatıyor! Her tur zaman <b>geri sarılır</b> ve geçen turda ne yaptıysan <b>hayaletin</b> aynısını yapar. Hayaletlerinle köprüyü indir, kapıyı aç, düşman bayrağını kendi kalene getir.</p>
+      <label for="adim">Adın</label>
+      <input id="adim" maxlength="14" placeholder="Adın" autocomplete="off">
+      <button id="odaKurBtn" class="ana">🏰 Oda aç</button>
+      <div class="satir">
+        <input id="odaKoduGir" maxlength="5" placeholder="ODA KODU" autocomplete="off" autocapitalize="characters">
+        <button id="katilBtn">Katıl</button>
+      </div>
+      <button id="tekBtn">🧙 Tek başına dene</button>
+      <p id="girisDurum" class="durum"></p>
+      <details class="nasil">
+        <summary>📖 Nasıl oynanır?</summary>
+        <ul>
+          <li>İki takım var: 🔴 <b>Kırmızı</b> ve 🔵 <b>Mavi</b>. Her takımın bir kalesi ve bayrağı var. Ortada nehir, üstünde iki <b>asma köprü</b> var.</li>
+          <li><b>Kazanmak için:</b> düşman bayrağını alıp kendi kalendeki bayrak yerine getir. İlk getiren takım kazanır.</li>
+          <li>Köprü kalkıktır. 🌉 <b>Köprü levhasına</b> biri basarken iner, inince hemen kalkar. Kalkık köprüden geçen suya düşer.</li>
+          <li>Düşman kalesinin kapısı kapalıdır. Kapının yanındaki 🚪 <b>kapı levhasına</b> biri basarken açılır. Kendi kalenin kapısı sana kendiliğinden açılır.</li>
+          <li><b>Döngü:</b> Her tur birkaç saniye sürer. Tur bitince zaman geri sarılır, herkes başa döner. Geçen turlarda yaptıkların <b>hayalet</b> olarak aynen tekrar oynanır. Örnek: 1. turda köprü levhasında bekle → 2. turda hayaletin köprüyü tutar, sen geçip kapı levhasına basarsın → 3. turda iki hayaletin yolu açar, sen bayrağı kaparsın.</li>
+          <li>⚡ <b>Paradoks:</b> Bir hayaletin yolunu kesersen (önüne geçersen, onu itersen, kalkık köprüye ya da kapalı kapıya denk gelirse) hayalet donar ve kaybolur. Bastığı levha boşalır, taşıdığı bayrak düşer. Bu zincirleme bütün planı bozabilir. Kendi hayaletlerinin önüne de geçme!</li>
+          <li>✊ <b>İtme:</b> Önündeki düşmanı itip sersemletirsin; taşıdığı bayrağı düşürür. Düşman hayaletini itersen paradoksa girer.</li>
+          <li>Düşen bayrağa sahibi dokunursa bayrak eve döner, düşman dokunursa kapar.</li>
+          <li>🎤 Oyunda sadece takım arkadaşların seni duyar.</li>
+          <li>Bilgisayar: ekrana tıkla, fareyle bak. WASD yürü, sol tık veya F it, M harita, K mikrofon. Fareyi serbest bırakmak için ESC.</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- Bekleme odası -->
+  <section id="lobi" class="ekran gizli">
+    <div class="kart">
+      <h2>Bekleme odası</h2>
+      <div class="kodKutu">Oda kodu: <b id="lobiKod">-----</b> <button id="kodKopyalaBtn" class="kucuk">📋</button></div>
+      <div class="takimlar">
+        <div class="takim k"><h3>🔴 Kırmızı</h3><ul id="liste0"></ul><button id="takim0Btn">Kırmızıya geç</button></div>
+        <div class="takim m"><h3>🔵 Mavi</h3><ul id="liste1"></ul><button id="takim1Btn">Maviye geç</button></div>
+      </div>
+      <div id="ayarlar">
+        <label>🎮 Mod <select id="ayMod"><option value="rakip" selected>Rakip (Kırmızı - Mavi)</option><option value="birlikte">Birlikte (herkes Kırmızı)</option></select></label>
+        <label>⏱️ Tur süresi <select id="aySure"><option value="20">20 sn</option><option value="30">30 sn</option><option value="45" selected>45 sn</option><option value="60">60 sn</option><option value="90">90 sn</option></select></label>
+        <label>🔁 Tur sayısı <select id="ayTur"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></label>
+        <label>⚡ Paradoks <select id="ayParadoks"><option value="1" selected>Açık</option><option value="0">Kapalı</option></select></label>
+      </div>
+      <p id="ayarOzet" class="durum"></p>
+      <div class="satir">
+        <button id="lobiMikBtn">🎤 Mikrofon kapalı</button>
+        <button id="lobiCikBtn">🚪 Çık</button>
+      </div>
+      <button id="baslaBtn" class="ana">⚔️ Oyunu başlat</button>
+      <p id="lobiDurum" class="durum"></p>
+    </div>
+  </section>
+
+  <!-- Oyun içi -->
+  <div id="hud" class="gizli">
+    <div id="ustOrta">
+      <div id="turYazi">TUR 1 / 5</div>
+      <div id="sureYazi">0:45</div>
+      <div id="bayrakDurum"></div>
+    </div>
+    <div id="ustSol">
+      <div id="takimRozet"></div>
+      <div id="hayaletSay"></div>
+    </div>
+    <div id="akis"></div>
+    <div id="buyukYazi"></div>
+    <canvas id="harita" width="240" height="320"></canvas>
+    <div id="nisan"></div>
+    <div id="sagTuslar">
+      <button id="itBtn" class="dokunmatik">✊</button>
+    </div>
+    <div id="ustSag">
+      <button id="mikBtn" title="Mikrofon (K)">🎤</button>
+      <button id="sesBtn" title="Oyun sesi">🔊</button>
+      <button id="cikBtn" title="Oyundan çık">🚪</button>
+    </div>
+    <div id="joystick"><div id="joyTopuz"></div></div>
+    <div id="ipucu" class="serbest">🖱️ Ekrana tıkla: fareyle etrafa bak. Fareyi serbest bırakmak için ESC.</div>
+  </div>
+  <div id="geriSar" class="gizli"><div>⏪ ZAMAN GERİ SARILIYOR</div><small>Geçen turdaki hâlin artık bir hayalet</small></div>
+
+  <!-- Sonuç -->
+  <section id="sonuc" class="ekran gizli">
+    <div class="kart">
+      <div id="sonucBaslik" class="baslik">KAZANDI</div>
+      <p id="sonucNeden" class="alt"></p>
+      <div class="satir">
+        <button id="lobiyeBtn">↩ Bekleme odası</button>
+        <button id="tekrarBtn" class="ana">🔁 Tekrar oyna</button>
+      </div>
+      <p id="sonucBekle" class="durum">Oda sahibi yeni oyunu başlatacak…</p>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="harita.js"></script>
+  <script src="cuce.js"></script>
+  <script src="sahne.js"></script>
+  <script src="ag.js"></script>
+  <script src="ses.js"></script>
+  <script src="motor.js"></script>
+  <script src="oyun.js"></script>
+  <script>
+    // iPhone sayfayı kendi kendine büyütmesin (iki parmak / çift dokunma)
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+    document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    document.addEventListener('dblclick', e => e.preventDefault());
+    (function () {
+      const m = document.querySelector('meta[name=viewport]');
+      const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!m || !ios) return;
+      const asil = m.getAttribute('content');
+      function sifirla() {
+        m.setAttribute('content', 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+        setTimeout(() => m.setAttribute('content', asil), 400);
+      }
+      document.addEventListener('focusout', e => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) setTimeout(sifirla, 50); });
+      window.addEventListener('orientationchange', () => setTimeout(sifirla, 300));
+      if (window.visualViewport) visualViewport.addEventListener('resize', () => {
+        const odak = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+        if (!odak && visualViewport.scale > 1.01) sifirla();
+      });
+    })();
+    if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
+  </script>
+</body>
+</html>
