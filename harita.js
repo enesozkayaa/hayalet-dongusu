@@ -48,6 +48,37 @@ const Harita = (() => {
   KOPRULER.forEach((bx, i) => [-7, 7].forEach(z => levhalar.push({ x: bx + Math.sign(bx) * 8, z, r: 1.1, tur: 'kopru', i })));
   [0, 1].forEach(t => levhalar.push({ x: t === 0 ? 8 : -8, z: isaret(t) * (KALE_ON - 4.5), r: 1.1, tur: 'kapi', i: t }));
 
+  // Mancınıklar: kale avlusunda, kapının yanında. Yanına gelip (2,2 m) ateşlenir.
+  const MANCINIKLAR = [0, 1].map(t => ({ t, x: t === 0 ? -6 : 6, z: isaret(t) * 26.5 }));
+  MANCINIKLAR.forEach(m => daireler.push({ x: m.x, z: m.z, r: 0.9, tur: 'mancinik' }));
+  const MANCINIK_MENZIL = [8, 48];
+
+  // Sal: iki köprünün ortasında (x = 0) nehri karşıdan karşıya gidip gelir. Konumu tur zamanına bağlı.
+  const SAL = { yariX: 1.5, yariZ: 1.15, genlik: NEHIR - 1.15 + 0.05, periyot: 10 };
+  const salZ = t => SAL.genlik * Math.max(-1, Math.min(1, 1.35 * Math.sin(t * Math.PI * 2 / SAL.periyot)));
+  const salUstunde = (x, z, t, pay = 0) => Math.abs(x) < SAL.yariX + pay && Math.abs(z - salZ(t)) < SAL.yariZ + pay;
+
+  // Tuzak kapaklar: kale avlusunda, kapı ile bayrak arasında. Düşman basınca açılır.
+  const KAPAKLAR = [];
+  [0, 1].forEach(t => [[-1.5, 25.5], [1.5, 25.5], [0, 27.4]].forEach(([x, z]) => KAPAKLAR.push({ t, x, z: isaret(t) * z, yari: 0.8 })));
+  const kapakUstunde = (k, x, z) => Math.abs(x - k.x) < k.yari && Math.abs(z - k.z) < k.yari;
+
+  // Gizli tüneller: haritanın iki kenarında, nehrin altından karşı kıyıya
+  const TUNELLER = [];
+  [-1, 1].forEach(yan => [-1, 1].forEach(s => TUNELLER.push({ x: yan * 27.6, z: s * 12, r: 0.95, hedef: { x: yan * 25.6, z: -s * 12 } })));
+
+  // Hazine sandığı çıkabilecek yerler (180° simetrik çiftler)
+  const SANDIK_YERLERI = [[-15, -17], [24, -24], [-6, -8], [20, -4], [-24, -6], [9, -14], [-17, -24], [16, -33]];
+  const sandikYerleri = []; SANDIK_YERLERI.forEach(([x, z]) => { sandikYerleri.push({ x, z }); sandikYerleri.push({ x: -x, z: -z }); });
+
+  // Barikat: oyuncunun önüne konan 2,2 m'lik tahta engel. Sadece düşmanı durdurur.
+  const BARIKAT = { yariU: 1.1, yariK: 0.25 };
+  function barikatYakin(b, x, z) {   // noktanın barikata göre yerel koordinatı
+    const fx = Math.sin(b.a), fz = Math.cos(b.a), rx = Math.cos(b.a), rz = -Math.sin(b.a), dx = x - b.x, dz = z - b.z;
+    return { u: dx * rx + dz * rz, k: dx * fx + dz * fz, rx, rz, fx, fz };
+  }
+  const barikatIcinde = (b, x, z, pay = 0) => { const l = barikatYakin(b, x, z); return Math.abs(l.u) < BARIKAT.yariU + pay && Math.abs(l.k) < BARIKAT.yariK + pay; };
+
   const kapiMerkez = t => ({ x: 0, z: isaret(t) * KALE_ON });
   const bayrakYeri = t => ({ x: 0, z: isaret(t) * 29.5 });
   // Doğma yerleri: kalenin arkasında 8 x 3 yer. slot = oyuncunun takımdaki sırası * 6 + tur
@@ -59,9 +90,11 @@ const Harita = (() => {
 
   const nehirde = (x, z) => Math.abs(z) < NEHIR;
   const kopruUstunde = (x, i) => Math.abs(x - KOPRULER[i]) < KOPRU_YARI;
-  // kopru: [0..1, 0..1] (1 = tamamen inik). İnik köprünün üstü dışında nehre basan düşer.
-  function duser(x, z, kopru) {
+  // kopru: [0..1, 0..1] (1 = tamamen inik). İnik köprünün ve salın üstü dışında nehre basan düşer.
+  // t: turun kaçıncı saniyesi (sal için). salPay: gecikmeye karşı sal biraz daha büyük sayılır.
+  function duser(x, z, kopru, t = null, salPay = 0) {
     if (!nehirde(x, z)) return false;
+    if (t !== null && salUstunde(x, z, t, salPay)) return false;
     for (let i = 0; i < KOPRULER.length; i++) if (kopru[i] >= 0.9 && kopruUstunde(x, i)) return false;
     return true;
   }
@@ -70,7 +103,7 @@ const Harita = (() => {
   const kapiGecer = (t, takim, kapi) => t === takim || kapi[t] >= 0.8;
 
   // Çember (x, z, r) duvarlardan itilir. takim/kapi verilirse kapalı düşman kapısı da duvar sayılır.
-  function it(x, z, r, takim = -1, kapi = [1, 1]) {
+  function it(x, z, r, takim = -1, kapi = [1, 1], barikatlar = null) {
     for (let tekrar = 0; tekrar < 3; tekrar++) {
       for (const k of kutular) {
         if (k.kapi !== undefined && kapiGecer(k.kapi, takim, kapi)) continue;
@@ -86,6 +119,17 @@ const Harita = (() => {
         const dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz), m = c.r + r;
         if (d < m && d > 1e-6) { x = c.x + dx / d * m; z = c.z + dz / d * m; }
       }
+      if (barikatlar) for (const b of barikatlar) {
+        if (b.takim === takim) continue;   // kendi takımının barikatından geçersin
+        const l = barikatYakin(b, x, z);
+        const cu = Math.max(-BARIKAT.yariU, Math.min(BARIKAT.yariU, l.u)), ck = Math.max(-BARIKAT.yariK, Math.min(BARIKAT.yariK, l.k));
+        const du = l.u - cu, dk = l.k - ck, d = Math.hypot(du, dk);
+        if (d >= r) continue;
+        let yu, yk;
+        if (d < 1e-6) { yu = l.u; yk = l.k >= 0 ? BARIKAT.yariK + r : -BARIKAT.yariK - r; }   // içindeyse ön/arka yüzden çıkar
+        else { yu = cu + du / d * r; yk = ck + dk / d * r; }
+        x = b.x + yu * l.rx + yk * l.fx; z = b.z + yu * l.rz + yk * l.fz;
+      }
     }
     return { x, z };
   }
@@ -100,6 +144,7 @@ const Harita = (() => {
     SX, SZ, NEHIR, KOPRU_YARI, KOPRULER, KALE_ON, KALE_ARKA, KALE_YARI, DUVAR, KAPI_YARI,
     kutular, daireler, levhalar, isaret, kapiMerkez, bayrakYeri, dogus,
     nehirde, duser, kapiIcinde, kapiGecer, it, dolu,
+    MANCINIKLAR, MANCINIK_MENZIL, SAL, salZ, salUstunde, KAPAKLAR, kapakUstunde, TUNELLER, sandikYerleri, BARIKAT, barikatIcinde,
   };
 })();
 if (typeof module !== 'undefined') module.exports = Harita;

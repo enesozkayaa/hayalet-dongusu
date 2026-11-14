@@ -32,6 +32,7 @@ const Sahne = (() => {
     scene.add(gunes);
 
     zemin(); nehir(); kopruler(); kaleler(); susler(); levhalar(); bayrakKur(); cit();
+    manciniklar(); sal(); kapaklar(); tuneller(); nisanKur();
     boyutla();
     addEventListener('resize', boyutla);
   }
@@ -223,6 +224,140 @@ const Sahne = (() => {
     b.grup.scale.setScalar(durum === 2 ? 0.7 : 1);
   }
 
+  // ---------- Mancınık ----------
+  const mancinikKol = [];
+  function manciniklar() {
+    const tahta = mat(0x8a5a2a), koyu = mat(0x4a2e14), demir = mat(0x55555c, { metalness: 0.6 });
+    H.MANCINIKLAR.forEach(m => {
+      const g = new THREE.Group(); g.position.set(m.x, 0, m.z); g.rotation.y = m.t === 0 ? 0 : Math.PI; scene.add(g);
+      const govde = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.35, 2.2), tahta); govde.position.y = 0.45; govde.castShadow = true; g.add(govde);
+      [[-0.75, -0.7], [0.75, -0.7], [-0.75, 0.7], [0.75, 0.7]].forEach(([x, z]) => {
+        const t = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.15, 12), koyu); t.rotation.z = Math.PI / 2; t.position.set(x, 0.32, z); t.castShadow = true; g.add(t);
+      });
+      [-0.55, 0.55].forEach(x => { const d = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.3, 0.15), tahta); d.position.set(x, 1.15, -0.2); d.castShadow = true; g.add(d); });
+      const mil = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.3, 8), demir); mil.rotation.z = Math.PI / 2; mil.position.set(0, 1.7, -0.2); g.add(mil);
+      const kol = new THREE.Group(); kol.position.set(0, 1.7, -0.2); g.add(kol);
+      const cubuk = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 2.6), tahta); cubuk.position.z = -0.7; cubuk.castShadow = true; kol.add(cubuk);
+      const kepce = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.22, 0.22, 10, 1, true), koyu); kepce.position.set(0, 0.12, -1.9); kol.add(kepce);
+      const tas = new THREE.Mesh(new THREE.DodecahedronGeometry(0.26, 0), mat(0x7a7a76)); tas.position.set(0, 0.25, -1.9); kol.add(tas);
+      kol.rotation.x = 0.55;   // geride, yüklü
+      const yuk = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), mat(0x5a5a58)); yuk.position.set(0, -0.3, 0.6); kol.add(yuk);
+      const e = etiket('🎯', 0.9); e.position.y = 3.2; g.add(e);
+      mancinikKol[m.t] = { kol, tas, e, a: 0.55, hedef: 0.55, bekle: 0 };
+    });
+  }
+  function mancinikAt(t) { const k = mancinikKol[t]; if (!k) return; k.hedef = -1.0; k.firlat = 0.35; k.tas.visible = false; }
+
+  // ---------- Sal ----------
+  let salG = null;
+  function sal() {
+    const tahta = mat(0x9a6a3a), koyu = mat(0x5a3a1e);
+    salG = new THREE.Group(); scene.add(salG);
+    for (let i = 0; i < 5; i++) {
+      const k = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, H.SAL.yariZ * 2, 8), tahta);
+      k.rotation.x = Math.PI / 2; k.position.set(-H.SAL.yariX + 0.3 + i * (H.SAL.yariX * 2 - 0.6) / 4, 0, 0); k.castShadow = true; k.receiveShadow = true; salG.add(k);
+    }
+    [-1, 1].forEach(s => { const c = new THREE.Mesh(new THREE.BoxGeometry(H.SAL.yariX * 2, 0.08, 0.15), koyu); c.position.set(0, 0.2, s * (H.SAL.yariZ - 0.2)); salG.add(c); });
+    const dir = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 6), koyu); dir.position.set(H.SAL.yariX - 0.3, 0.7, 0); salG.add(dir);
+    const fener = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd23f })); fener.position.set(H.SAL.yariX - 0.3, 1.35, 0); salG.add(fener);
+    // karşıdan karşıya gerili halat
+    [-1, 1].forEach(yan => {
+      [-1, 1].forEach(s => kutuMesh(0.18, 1.6, 0.18, koyu, yan * (H.SAL.yariX + 0.3), 0.8, s * (H.NEHIR + 0.5)));
+      const h = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, H.NEHIR * 2 + 1, 4), mat(0xd8c08a)); h.rotation.x = Math.PI / 2; h.position.set(yan * (H.SAL.yariX + 0.3), 1.45, 0); scene.add(h);
+    });
+    salG.position.set(0, -0.42, 0);
+  }
+
+  // ---------- Tuzak kapaklar ----------
+  const kapakMesh = [];
+  function kapaklar() {
+    H.KAPAKLAR.forEach(k => {
+      const g = new THREE.Group(); g.position.set(k.x, 0, k.z); scene.add(g);
+      const kuyu = new THREE.Mesh(new THREE.PlaneGeometry(k.yari * 2, k.yari * 2), new THREE.MeshBasicMaterial({ color: 0x050505 })); kuyu.rotation.x = -Math.PI / 2; kuyu.position.y = 0.015; g.add(kuyu);
+      const cerceve = new THREE.Mesh(new THREE.RingGeometry(k.yari * 1.25, k.yari * 1.45, 4, 1), mat(0x6a6a66)); cerceve.rotation.set(-Math.PI / 2, 0, Math.PI / 4); cerceve.position.y = 0.02; g.add(cerceve);
+      const mentese = new THREE.Group(); mentese.position.set(-k.yari, 0.04, 0); g.add(mentese);
+      const kapak = new THREE.Mesh(new THREE.BoxGeometry(k.yari * 2, 0.06, k.yari * 2), mat(0x7a5232)); kapak.position.x = k.yari; kapak.receiveShadow = true; mentese.add(kapak);
+      [-0.4, 0, 0.4].forEach(z => { const c = new THREE.Mesh(new THREE.BoxGeometry(k.yari * 2, 0.07, 0.05), mat(0x4a2e14)); c.position.set(k.yari, 0.005, z * k.yari * 2); mentese.add(c); });
+      kapakMesh.push({ mentese, a: 0, acik: false });
+    });
+  }
+
+  // ---------- Tüneller ----------
+  function tuneller() {
+    const tas = mat(0x6a645a);
+    H.TUNELLER.forEach(t => {
+      const g = new THREE.Group(); g.position.set(t.x, 0, t.z); scene.add(g);
+      const delik = new THREE.Mesh(new THREE.CircleGeometry(t.r, 20), new THREE.MeshBasicMaterial({ color: 0x080808 })); delik.rotation.x = -Math.PI / 2; delik.position.y = 0.02; g.add(delik);
+      const halka = new THREE.Mesh(new THREE.TorusGeometry(t.r + 0.1, 0.18, 6, 18), tas); halka.rotation.x = Math.PI / 2; halka.position.y = 0.1; halka.castShadow = true; g.add(halka);
+      const kemer = new THREE.Mesh(new THREE.TorusGeometry(t.r + 0.1, 0.16, 6, 14, Math.PI), tas); kemer.position.set(0, 0.1, 0); kemer.rotation.y = Math.PI / 2; kemer.castShadow = true; g.add(kemer);
+      const e = etiket('🕳️', 0.9); e.position.y = 2.1; g.add(e);
+    });
+  }
+
+  // ---------- Mancınık nişan halkası ----------
+  let nisan = null;
+  function nisanKur() {
+    nisan = new THREE.Mesh(new THREE.RingGeometry(2.9, 3.2, 40), new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+    nisan.rotation.x = -Math.PI / 2; nisan.visible = false; scene.add(nisan);
+    const ic = new THREE.Mesh(new THREE.CircleGeometry(0.3, 16), new THREE.MeshBasicMaterial({ color: 0xff4a2a, side: THREE.DoubleSide })); nisan.add(ic);
+  }
+  function nisanGoster(x, z, hazir) {
+    if (x === null) { nisan.visible = false; return; }
+    nisan.visible = true; nisan.position.set(x, 0.08, z);
+    nisan.material.color.setHex(hazir ? 0xff4a2a : 0x888888);
+  }
+
+  // ---------- Hareketli nesneler: barikat, balta, taş, sandık ----------
+  const dinamikler = { bk: new Map(), bl: new Map(), tas: new Map(), sd: new Map() };
+  function barikatYap(takim) {
+    const g = new THREE.Group();
+    const tahta = mat(0x8a5a2a), renk = mat(Cuce.TAKIM[takim]);
+    [0.35, 0.75].forEach(y => { const t = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.22, 0.12), tahta); t.position.y = y; t.castShadow = true; g.add(t); });
+    [-0.9, 0, 0.9].forEach(x => {
+      const c = new THREE.Mesh(new THREE.ConeGeometry(0.09, 1.3, 6), tahta); c.position.set(x, 0.7, 0); c.rotation.x = 0.35; c.castShadow = true; g.add(c);
+      const c2 = c.clone(); c2.rotation.x = -0.35; g.add(c2);
+    });
+    const serit = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.08, 0.14), renk); serit.position.y = 0.55; g.add(serit);
+    return g;
+  }
+  function baltaYap() {
+    const g = new THREE.Group();
+    const sap = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7, 6), mat(0x6a4a2a)); g.add(sap);
+    const agiz = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.28, 0.05), mat(0xc8ccd4, { metalness: 0.7, roughness: 0.3 })); agiz.position.set(0.14, 0.25, 0); g.add(agiz);
+    return g;
+  }
+  function sandikYap() {
+    const g = new THREE.Group();
+    const govde = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 0.6), mat(0x8a5a2a)); govde.position.y = 0.25; govde.castShadow = true; g.add(govde);
+    const kapak = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.9, 12, 1, false, 0, Math.PI), mat(0x9a6a3a)); kapak.rotation.z = Math.PI / 2; kapak.position.y = 0.5; kapak.castShadow = true; g.add(kapak);
+    const altin = mat(0xffc63a, { metalness: 0.6, roughness: 0.3, emissive: 0x7a5a00, emissiveIntensity: 0.4 });
+    [-0.35, 0.35].forEach(x => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.82, 0.64), altin); s.position.set(x, 0.42, 0); g.add(s); });
+    const kilit = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.05), altin); kilit.position.set(0, 0.45, 0.31); g.add(kilit);
+    const isik = new THREE.PointLight(0xffd23f, 1.2, 5); isik.position.y = 1.2; g.add(isik);
+    const e = etiket('🎁', 0.8); e.position.y = 1.6; g.add(e);
+    return g;
+  }
+  function esitle(harita, liste, adim, yap, guncelle) {
+    const gorulen = new Set();
+    for (let j = 0; j < liste.length; j += adim) {
+      const id = liste[j]; gorulen.add(id);
+      let m = harita.get(id);
+      if (!m) { m = yap(liste, j); scene.add(m); harita.set(id, m); }
+      guncelle(m, liste, j);
+    }
+    harita.forEach((m, id) => { if (!gorulen.has(id)) { scene.remove(m); harita.delete(id); } });
+  }
+  function dinamik(d) {
+    esitle(dinamikler.bk, d.bk || [], 6, (L, j) => barikatYap(L[j + 4]), (m, L, j) => { m.position.set(L[j + 1], 0, L[j + 2]); m.rotation.y = L[j + 3]; m.scale.y = L[j + 5] >= 2 ? 1 : 0.7; });
+    esitle(dinamikler.bl, d.bl || [], 4, () => baltaYap(), (m, L, j) => { m.userData.hx = L[j + 1]; m.userData.hz = L[j + 2]; if (m.userData.x === undefined) { m.userData.x = L[j + 1]; m.userData.z = L[j + 2]; } m.rotation.y = L[j + 3]; });
+    esitle(dinamikler.tas, d.tas || [], 6, () => { const t = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45, 0), mat(0x7a7a76)); t.castShadow = true; return t; },
+      (m, L, j) => { Object.assign(m.userData, { x0: L[j + 1], z0: L[j + 2], tx: L[j + 3], tz: L[j + 4], p: L[j + 5], gelen: performance.now() }); });
+    esitle(dinamikler.sd, d.sd || [], 3, () => sandikYap(), (m, L, j) => { m.userData.x = L[j + 1]; m.userData.z = L[j + 2]; });
+    d.kp?.forEach((v, i) => { if (kapakMesh[i]) kapakMesh[i].acik = !!v; });
+    d.mb?.forEach((v, t) => { const k = mancinikKol[t]; if (k) { k.bekle = v; if (v <= 0 && !k.firlat) { k.hedef = 0.55; k.tas.visible = true; } k.e.visible = v <= 0; } });
+  }
+  function salGuncelle(t) { if (salG) { salG.position.z = H.salZ(t); salG.position.y = -0.42 + Math.sin(zaman * 2.2) * 0.04; salG.rotation.z = Math.sin(zaman * 1.7) * 0.03; } }
+
   // ---------- Durum (her paket) ----------
   function durum(d) {
     if (!d) return;
@@ -256,7 +391,22 @@ const Sahne = (() => {
       efektler.push({ mesh: d, t: 0, sure: 1.1, hiz: new THREE.Vector3(Math.cos(a) * 3, 2 + Math.random() * 3, Math.sin(a) * 3) });
     }
   }
-  function itmeEfekt(x, z) { halka(x, z, 0xffe08a, 0.4, 3); }
+  function itmeEfekt(x, z, buyuk = false) { halka(x, z, buyuk ? 0xff9a2a : 0xffe08a, buyuk ? 0.7 : 0.4, buyuk ? 7 : 3); }
+  function parca(x, y, z, renk, n, hiz, sure = 1, boy = 0.14) {
+    for (let i = 0; i < n; i++) {
+      const d = new THREE.Mesh(new THREE.BoxGeometry(boy, boy, boy), new THREE.MeshBasicMaterial({ color: renk, transparent: true }));
+      d.position.set(x, y, z); scene.add(d);
+      const a = Math.random() * Math.PI * 2, v = hiz * (0.5 + Math.random() * 0.7);
+      efektler.push({ mesh: d, t: 0, sure, hiz: new THREE.Vector3(Math.cos(a) * v, 3 + Math.random() * hiz, Math.sin(a) * v) });
+    }
+  }
+  function patlama(x, z, su) {
+    if (su) { sicrama(x, z); sicrama(x + 0.5, z - 0.3); return; }
+    halka(x, z, 0xc8a070, 0.9, 9); halka(x, z, 0x8a6a4a, 1.2, 6);
+    parca(x, 0.3, z, 0x8a8a86, 16, 6, 1.2, 0.22); parca(x, 0.3, z, 0xb08a5a, 14, 4, 1.0, 0.12);
+  }
+  function vurusEfekt(x, z, renk = 0xffffff) { halka(x, z, renk, 0.35, 2); parca(x, 0.9, z, renk, 6, 2.5, 0.5, 0.08); }
+  function sandikEfekt(x, z) { halka(x, z, 0xffd23f, 0.8, 5); parca(x, 0.6, z, 0xffd23f, 18, 3, 1.1, 0.1); }
 
   function ciz(dt) {
     zaman += dt;
@@ -276,6 +426,21 @@ const Sahne = (() => {
       for (let i = 0; i < p.count; i++) { const x = t[i * 3] + 0.55; p.array[i * 3 + 2] = Math.sin(x * 5 - zaman * 7) * 0.08 * x; }
       p.needsUpdate = true;
     });
+    mancinikKol.forEach(k => {
+      if (!k) return;
+      if (k.firlat > 0) k.firlat = Math.max(0, k.firlat - dt);
+      k.a += (k.hedef - k.a) * Math.min(1, dt * (k.hedef < k.a ? 18 : 2));
+      k.kol.rotation.x = k.a;
+      k.e.position.y = 3.2 + Math.sin(zaman * 2.5) * 0.1;
+    });
+    kapakMesh.forEach(k => { const h = k.acik ? -1.6 : 0; k.a += (h - k.a) * Math.min(1, dt * 14); k.mentese.rotation.z = k.a; });
+    dinamikler.bl.forEach(m => { const u = m.userData; u.x += (u.hx - u.x) * Math.min(1, dt * 20); u.z += (u.hz - u.z) * Math.min(1, dt * 20); m.position.set(u.x, 0.9, u.z); m.rotation.x += dt * 22; });
+    dinamikler.tas.forEach(m => {
+      const u = m.userData, p = Math.min(1, u.p + (performance.now() - u.gelen) / 1500);
+      m.position.set(u.x0 + (u.tx - u.x0) * p, 2.4 + 14 * p * (1 - p) * 1.6 - 2.2 * p, u.z0 + (u.tz - u.z0) * p);
+      m.rotation.x += dt * 6; m.rotation.z += dt * 4;
+    });
+    dinamikler.sd.forEach(m => { const u = m.userData; m.position.set(u.x, Math.sin(zaman * 3 + u.x) * 0.08, u.z); m.rotation.y += dt * 0.8; });
     for (let i = efektler.length - 1; i >= 0; i--) {
       const e = efektler[i];
       if (e.kopuk) { e.mesh.position.x += dt * e.mesh.userData.kopuk; if (e.mesh.position.x > 80) e.mesh.position.x = -80; continue; }
@@ -290,6 +455,7 @@ const Sahne = (() => {
 
   return {
     kur, ciz, durum, sicrama, paradoksEfekt, itmeEfekt, etiket,
+    dinamik, salGuncelle, mancinikAt, patlama, vurusEfekt, sandikEfekt, nisanGoster,
     get scene() { return scene; }, get camera() { return camera; },
   };
 })();

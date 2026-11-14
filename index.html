@@ -42,9 +42,16 @@
           <li><b>Döngü:</b> Her tur birkaç saniye sürer. Tur bitince zaman geri sarılır, herkes başa döner. Geçen turlarda yaptıkların <b>hayalet</b> olarak aynen tekrar oynanır. Örnek: 1. turda köprü levhasında bekle → 2. turda hayaletin köprüyü tutar, sen geçip kapı levhasına basarsın → 3. turda iki hayaletin yolu açar, sen bayrağı kaparsın.</li>
           <li>⚡ <b>Paradoks:</b> Bir hayaletin yolunu kesersen (önüne geçersen, onu itersen, kalkık köprüye ya da kapalı kapıya denk gelirse) hayalet donar ve kaybolur. Bastığı levha boşalır, taşıdığı bayrak düşer. Bu zincirleme bütün planı bozabilir. Kendi hayaletlerinin önüne de geçme!</li>
           <li>✊ <b>İtme:</b> Önündeki düşmanı itip sersemletirsin; taşıdığı bayrağı düşürür. Düşman hayaletini itersen paradoksa girer.</li>
+          <li>🪓 <b>Balta:</b> Baktığın yöne fırlatırsın; değdiği düşmanı sersemletir, düşman hayaletini bozar, barikatı kırar. 💨 <b>Atılma:</b> Kısa bir hız patlaması (kapı kapanmadan son anda dalmak için).</li>
+          <li>🧱 <b>Barikat:</b> Her turda 2 tane. Önüne tahta engel koyarsın; sadece düşmanı durdurur. Düşman hayaleti çarparsa paradoks!</li>
+          <li>🎯 <b>Mancınık:</b> Kendi kalendeki mancınığın yanına git, uzağa bak (yerde kırmızı halka çıkar), E'ye bas. Taş düştüğü yerdeki düşmanları uçurur, hayaletleri bozar, barikatları yıkar; köprüye düşerse köprü 6 sn kırılır.</li>
+          <li>🛶 <b>Sal:</b> İki köprünün ortasında nehirde gidip gelir; köprüler kalkıkken karşıya geçmenin yolu. 🕳️ <b>Gizli tünel:</b> Haritanın iki kenarındaki deliklere girersen 2,5 sn sonra karşı kıyıdan çıkarsın (bayrakla girilmez).</li>
+          <li>🪤 <b>Tuzak kapaklar:</b> Kale avlusunda, kapı ile bayrak arasında. Düşman basarsa zindana düşer, taşıdığı bayrak geri döner. Kendi kapaklarına basabilirsin.</li>
+          <li>🎁 <b>Hazine sandıkları:</b> Arada bir haritada çıkar. İçinden 👟 hız, 🛡️ kalkan, 👻 görünmezlik, ⏸️ rakip hayaletleri dondurma ya da 🔨 dev çekiç çıkar.</li>
+          <li>📼 Oyun bitince bayrağın getirildiği son saniyeler ağır çekimde tekrar oynatılır.</li>
           <li>Düşen bayrağa sahibi dokunursa bayrak eve döner, düşman dokunursa kapar.</li>
           <li>🎤 Oyunda sadece takım arkadaşların seni duyar.</li>
-          <li>Bilgisayar: ekrana tıkla, fareyle bak. WASD yürü, sol tık veya F it, M harita, K mikrofon. Fareyi serbest bırakmak için ESC.</li>
+          <li>Bilgisayar: ekrana tıkla, fareyle bak. WASD yürü, sol tık/F it, Q balta, Shift atıl, R barikat, E mancınık, M harita, K mikrofon. Fareyi serbest bırakmak için ESC.</li>
         </ul>
       </details>
     </div>
@@ -85,13 +92,18 @@
     <div id="ustSol">
       <div id="takimRozet"></div>
       <div id="hayaletSay"></div>
+      <div id="gucYazi" class="gizli"></div>
     </div>
     <div id="akis"></div>
     <div id="buyukYazi"></div>
     <canvas id="harita" width="240" height="320"></canvas>
     <div id="nisan"></div>
-    <div id="sagTuslar">
-      <button id="itBtn" class="dokunmatik">✊</button>
+    <div id="yetenekler">
+      <button id="mancinikBtn" class="gizli" title="Mancınık (E)">🎯<kbd>E</kbd></button>
+      <button id="barikatBtn" title="Barikat (R)">🧱<span id="barikatSay">2</span><kbd>R</kbd></button>
+      <button id="atilBtn" title="Atıl (Shift)">💨<kbd>⇧</kbd></button>
+      <button id="baltaBtn" title="Balta fırlat (Q)">🪓<kbd>Q</kbd></button>
+      <button id="itBtn" class="buyuk" title="İt (F / sol tık)">✊<kbd>F</kbd></button>
     </div>
     <div id="ustSag">
       <button id="mikBtn" title="Mikrofon (K)">🎤</button>
@@ -101,6 +113,7 @@
     <div id="joystick"><div id="joyTopuz"></div></div>
     <div id="ipucu" class="serbest">🖱️ Ekrana tıkla: fareyle etrafa bak. Fareyi serbest bırakmak için ESC.</div>
   </div>
+  <div id="tekrarKutu" class="gizli"><span>🔴 TEKRAR · ağır çekim</span><button id="tekrarAtlaBtn">Atla ⏭</button></div>
   <div id="geriSar" class="gizli"><div>⏪ ZAMAN GERİ SARILIYOR</div><small>Geçen turdaki hâlin artık bir hayalet</small></div>
 
   <!-- Sonuç -->

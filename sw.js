@@ -1,9 +1,9 @@
-﻿// =============================================================
+// =============================================================
 // Hayalet Döngüsü - servis çalışanı (ana ekrana ekleme + çevrimdışı kopya)
 // Oyunu güncelleyip yüklerken ONBELLEK numarasını 1 artır.
 // =============================================================
 
-const ONBELLEK = 'hayalet-dongusu-v1';
+const ONBELLEK = 'hayalet-dongusu-v2';
 const DOSYALAR = [
   './', 'index.html', 'style.css', 'harita.js', 'cuce.js', 'sahne.js', 'ag.js', 'ses.js', 'motor.js', 'oyun.js',
   'manifest.webmanifest', 'ikonlar/ikon-192.png', 'ikonlar/ikon-512.png',

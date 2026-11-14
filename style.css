@@ -61,8 +61,24 @@ label { font-weight: 800; font-size: 14px; }
 #harita { position: absolute; left: max(10px, env(safe-area-inset-left)); bottom: max(10px, env(safe-area-inset-bottom)); width: 120px; height: 160px; border: 3px solid #5a5068; border-radius: 8px; background: #6fae4f; pointer-events: auto; box-shadow: 0 4px 14px #0007; }
 #harita.buyuk { width: min(240px, 40vw); height: min(320px, 54vh); z-index: 30; }
 #nisan { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff8; box-shadow: 0 0 3px #000; }
-#sagTuslar { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; gap: 10px; justify-items: end; }
-#sagTuslar button { width: 80px; height: 80px; border-radius: 50%; font-size: 36px; padding: 0; background: #0007; color: #fff; box-shadow: 0 0 0 3px #fff6; }
+/* Yetenekler: bilgisayarda altta ortada bir sıra, telefonda sağ altta */
+#yetenekler { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: flex-end; }
+#yetenekler button { position: relative; width: 56px; height: 56px; border-radius: 14px; font-size: 26px; padding: 0; background: #000a; color: #fff; box-shadow: 0 0 0 2px #fff5; overflow: hidden; --bekle: 0; }
+#yetenekler button.buyuk { width: 66px; height: 66px; font-size: 32px; }
+#yetenekler button::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--bekle) * 100%); background: #000a; pointer-events: none; }
+#yetenekler button.bekliyor { opacity: .75; }
+#yetenekler button.bitti { opacity: .35; }
+#yetenekler kbd { position: absolute; right: 3px; bottom: 2px; font: 800 10px Nunito, sans-serif; background: #fff3; border-radius: 4px; padding: 0 3px; }
+#yetenekler #barikatSay { position: absolute; left: 4px; top: 2px; font: 900 13px Nunito, sans-serif; color: #ffd23f; }
+#mancinikBtn { background: #8a2a1acc !important; box-shadow: 0 0 0 2px #ffd23f !important; animation: nabiz 0.6s infinite alternate; }
+body.dokun #yetenekler { left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; display: grid; grid-template-columns: repeat(2, auto); gap: 8px; }
+body.dokun #yetenekler button { width: 60px; height: 60px; border-radius: 50%; }
+body.dokun #yetenekler button.buyuk { width: 78px; height: 78px; grid-column: 2; }
+body.dokun #yetenekler kbd { display: none; }
+#gucYazi { font-size: 14px; background: #3a2a7acc; border: 2px solid #ffd23f; border-radius: 8px; padding: 3px 8px; }
+#tekrarKutu { position: fixed; left: 50%; top: max(70px, calc(env(safe-area-inset-top) + 70px)); transform: translateX(-50%); z-index: 16; display: flex; gap: 10px; align-items: center; background: #000b; color: #fff; padding: 6px 8px 6px 14px; border-radius: 12px; font-weight: 900; }
+#tekrarKutu span { animation: nabiz 0.8s infinite alternate; }
+#tekrarKutu button { padding: 6px 12px; font-size: 14px; }
 #ustSag { position: absolute; right: max(10px, env(safe-area-inset-right)); top: max(10px, env(safe-area-inset-top)); display: flex; gap: 6px; }
 #ustSag button { width: 42px; height: 42px; padding: 0; font-size: 20px; border-radius: 10px; background: #0007; color: #fff; box-shadow: none; }
 #ustSag button.kapali { opacity: .45; } #ustSag button.acik { background: #2a8a3acc; }
@@ -86,7 +102,9 @@ body.dokun #ipucu { display: none; }
 @media (max-height: 500px) {
   #harita { width: 90px; height: 120px; } #harita.buyuk { width: min(200px, 34vw); height: min(270px, 80vh); }
   #turYazi { font-size: 14px; } #sureYazi { font-size: 22px; } #bayrakDurum { font-size: 11px; }
-  #sagTuslar button { width: 64px; height: 64px; font-size: 28px; }
+  #yetenekler button { width: 46px; height: 46px; font-size: 21px; } #yetenekler button.buyuk { width: 54px; height: 54px; font-size: 26px; }
+  body.dokun #yetenekler button { width: 50px; height: 50px; } body.dokun #yetenekler button.buyuk { width: 62px; height: 62px; }
   #ustSag button { width: 36px; height: 36px; font-size: 17px; }
   #akis { width: min(260px, 36vw); } #akis div { font-size: 11px; padding: 4px 7px; }
 }
+body.tekrarda #yetenekler, body.tekrarda #ipucu, body.tekrarda #harita, body.tekrarda #akis { display: none !important; }
