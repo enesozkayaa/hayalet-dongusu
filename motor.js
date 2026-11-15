@@ -9,7 +9,7 @@
 const Motor = (() => {
   const H = typeof Harita !== 'undefined' ? Harita : require('./harita.js');
   const DT = 0.05;                    // 20 adım/sn
-  const ITME_MENZIL = 1.8, ITME_BEKLE = 1.2, SERSEM = 1.0, CARPMA = 0.6, LUTUF = 1.0;
+  const ITME_MENZIL = 1.8, ITME_BEKLE = 1.2, SERSEM = 1.0, CARPMA = 0.6, LUTUF = 1.0, LUTUF_SONSUZ = 3.0, SONSUZ_HAYALET_TUR = 8;
   const HAZIR = 3, SAR = 2.6, DUSME = 2, ZINDAN = 3;
   const BALTA_BEKLE = 4, BALTA_HIZ = 16, BALTA_MENZIL = 14, BARIKAT_HAK = 2, MANCINIK_BEKLE = 5, TAS_SURE = 1.5, TAS_ALAN = 3.2;
   const KOPRU_KIRIK = 6, SANDIK_ARA = 9, SANDIK_EN_FAZLA = 3;
@@ -61,7 +61,8 @@ const Motor = (() => {
       ? o.bayraklar.map(f => (f.durum === 'ev' ? evBayrak(f.t) : kiyiya({ t: f.t, durum: 'yerde', x: f.x, z: f.z, tasiyan: null })))
       : [evBayrak(0), evBayrak(1)];
     // Önceki turların kayıtları hayalet olur
-    o.hayaletler = o.kayitlar.map((k, i) => ({ i, sahip: k.sahip, takim: k.takim, tur: k.tur, kare: k.kare, x: k.kare[0]?.[0] ?? 0, z: k.kare[0]?.[1] ?? 0, yaw: k.kare[0]?.[2] ?? 0, h: 0, durum: 0, donT: 0, gizli: false, bayrak: -1, ad: k.ad, ofs: 0 }));
+    o.hayaletler = o.kayitlar.map((k, i) => ({ i, sahip: k.sahip, takim: k.takim, tur: k.tur, kare: k.kare, x: k.kare[0]?.[0] ?? 0, z: k.kare[0]?.[1] ?? 0, yaw: k.kare[0]?.[2] ?? 0, h: 0, durum: 0, donT: 0, gizli: false, bayrak: -1, ad: k.ad, ofs: 0 }))
+      .filter(g => o.ayar.tur > 0 || g.tur > o.tur - 1 - SONSUZ_HAYALET_TUR);   // sonsuzda sadece son 8 turun hayaletleri (oyun kasmasın)
     o.oyuncular.forEach(p => {
       if (p.cikti) return;
       const d = H.dogus(p.takim, p.ti * 6 + o.tur - 1);
@@ -82,7 +83,7 @@ const Motor = (() => {
     }
     if (o.faz === 'sar') {
       o.fazT -= DT;
-      if (o.fazT <= 0) { if (o.tur >= o.ayar.tur) return bitir(-1, 'Tur bitti, kimse bayrağı getiremedi.'); turBaslat(); }
+      if (o.fazT <= 0) { if (o.ayar.tur > 0 && o.tur >= o.ayar.tur) return bitir(-1, 'Tur bitti, kimse bayrağı getiremedi.'); turBaslat(); }
       return yay();
     }
     o.t++;
@@ -126,7 +127,7 @@ const Motor = (() => {
       const dk = 1 - g.takim;
       if (H.kapiIcinde(g.x, g.z, dk) && o.kapi[dk] < 0.8) { paradoks(g, 'kale kapısı kapalıydı'); continue; }
       if (o.barikatlar.some(b => b.takim !== g.takim && H.barikatIcinde(b, g.x, g.z, 0.2))) { paradoks(g, 'barikata çarptı'); continue; }
-      if (sn() > LUTUF) {
+      if (sn() > (o.ayar.tur === 0 ? LUTUF_SONSUZ : LUTUF)) {   // sonsuz modda doğuş yerleri tekrar eder, ilk 3 sn çarpışma yok
         const p = o.oyuncular.find(p => !gizliMi(p) && Math.hypot(p.x - g.x, p.z - g.z) < CARPMA);
         if (p) { paradoks(g, p.no === g.sahip ? 'kendi geçmişine çarptı' : `${p.ad} yolunu kesti`); continue; }
         const d = o.hayaletler.find(d => d !== g && d.durum === 1 && Math.hypot(d.x - g.x, d.z - g.z) < CARPMA);

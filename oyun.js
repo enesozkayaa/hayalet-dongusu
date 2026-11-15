@@ -101,7 +101,7 @@ const Oyun = (() => {
     const a = lobi.ayar;
     $('ayMod').value = a.mod; $('aySure').value = String(a.sure); $('ayTur').value = String(a.tur); $('ayParadoks').value = a.paradoks ? '1' : '0';
     ['ayMod', 'aySure', 'ayTur', 'ayParadoks'].forEach(id => { $(id).disabled = !yonetici() || (mod === 'tek' && id === 'ayMod'); });
-    $('ayarOzet').textContent = `${a.tur} tur × ${a.sure} sn · Paradoks ${a.paradoks ? 'açık' : 'kapalı'}`;
+    $('ayarOzet').textContent = `${a.tur ? a.tur + ' tur' : '♾️ Sonsuz tur'} × ${a.sure} sn · Paradoks ${a.paradoks ? 'açık' : 'kapalı'}`;
     $('baslaBtn').classList.toggle('gizli', !yonetici());
     $('lobiMikBtn').classList.toggle('gizli', mod === 'tek');
     document.querySelector('.kodKutu').classList.toggle('gizli', mod === 'tek');
@@ -263,8 +263,9 @@ const Oyun = (() => {
     });
     const benim = m.hayaletler.filter(h => h.sahip === oyun.benimNo).length;
     $('hayaletSay').textContent = `👻 ${benim} hayaletin var`;
-    $('turYazi').textContent = `TUR ${m.tur} / ${m.toplam}`;
-    buyukYazi(`TUR ${m.tur} / ${m.toplam}`, m.tur === 1 ? 'Bu turda ne yaparsan sonraki turlarda hayaletin aynısını yapacak' : `${benim} hayaletin geçen turlardaki gibi hareket edecek. Yollarını kesme!`, 2600);
+    const turAd = `TUR ${m.tur} / ${m.toplam || '∞'}`;
+    $('turYazi').textContent = turAd;
+    buyukYazi(turAd, m.tur === 1 ? 'Bu turda ne yaparsan sonraki turlarda hayaletin aynısını yapacak' : `${benim} hayaletin geçen turlardaki gibi hareket edecek. Yollarını kesme!`, 2600);
     oyun.geriSay = 3;
   }
   function fazGeldi(f) {
