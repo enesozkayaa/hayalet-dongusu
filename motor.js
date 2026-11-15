@@ -30,7 +30,7 @@ const Motor = (() => {
       oyuncular: liste.map((p, no) => ({ id: p.id, ad: p.ad, takim: p.takim, no, ti: sira[p.takim]++, x: 0, z: 0, yaw: 0, h: 0, sonItme: -9, sonBalta: -9, sonBarikat: -9, itmeIstek: false, itti: false, eylem: 0, sersem: 0, dus: 0, bayrak: -1, cikti: false, kayit: null, guc: null, barikatHak: BARIKAT_HAK })),
       kayitlar: [], hayaletler: [], kopru: [0, 0], kapi: [0, 0], bayraklar: [], bitti: null,
     };
-    o.ayar.sure = Math.max(30, +o.ayar.sure || 45);   // 30 sn'den kısa turda bayrağa gidip dönmek imkânsız
+    o.ayar.sure = Math.max(20, +o.ayar.sure || 45);   // bayrak turlar arası yerinde kaldığı için kısa tur da oynanır
     cb.herkese({ tip: 'basla', oyuncular: o.oyuncular.map(p => ({ id: p.id, ad: p.ad, takim: p.takim, no: p.no })), ayar: o.ayar });
     turBaslat();
     if (!secenek.elle) {
