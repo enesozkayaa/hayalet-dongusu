@@ -45,6 +45,8 @@ const Motor = (() => {
   function durdur() { clearInterval(zaman); zaman = null; }
 
   const evBayrak = t => ({ t, durum: 'ev', ...H.bayrakYeri(t), tasiyan: null });
+  // Nehre düşen bayrak en yakın kıyıya vurur (eve dönmez)
+  const kiyiya = f => { if (H.nehirde(f.x, f.z)) f.z = (f.z < 0 ? -1 : 1) * (H.NEHIR + 0.9); return f; };
   const sn = () => o.t * DT;
   const gizliMi = a => (a.kare ? a.gizli : a.h === 3 || a.dus > 0 || a.cikti);   // tünelde / suda / zindanda
 
@@ -54,7 +56,10 @@ const Motor = (() => {
       kopru: [0, 0], kapi: [0, 0], kopruKirik: [0, 0], donma: [0, 0], mancinikBekle: [0, 0],
       barikatlar: [], baltalar: [], taslar: [], sandiklar: [], sandikT: 4, kapaklar: H.KAPAKLAR.map(() => 0),
     });
-    o.bayraklar = [evBayrak(0), evBayrak(1)];
+    // Bayraklar tur bitince eve dönmez: taşınıyorsa taşıyanın olduğu yere düşer, yerdeyse orada kalır
+    o.bayraklar = o.bayraklar.length === 2
+      ? o.bayraklar.map(f => (f.durum === 'ev' ? evBayrak(f.t) : kiyiya({ t: f.t, durum: 'yerde', x: f.x, z: f.z, tasiyan: null })))
+      : [evBayrak(0), evBayrak(1)];
     // Önceki turların kayıtları hayalet olur
     o.hayaletler = o.kayitlar.map((k, i) => ({ i, sahip: k.sahip, takim: k.takim, tur: k.tur, kare: k.kare, x: k.kare[0]?.[0] ?? 0, z: k.kare[0]?.[1] ?? 0, yaw: k.kare[0]?.[2] ?? 0, h: 0, durum: 0, donT: 0, gizli: false, bayrak: -1, ad: k.ad, ofs: 0 }));
     o.oyuncular.forEach(p => {
@@ -324,7 +329,7 @@ const Motor = (() => {
     a.bayrak = -1;
     if (!f) return;
     f.tasiyan = null;
-    if (H.nehirde(f.x, f.z)) { Object.assign(f, evBayrak(f.t)); cb.herkese({ tip: 'bayrak', olay: 'eve', t: f.t }); return; }
+    kiyiya(f);
     f.durum = 'yerde';
     cb.herkese({ tip: 'bayrak', olay: 'dustu', t: f.t, kim: kimAdi(a) });
   }
