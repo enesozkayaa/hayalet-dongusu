@@ -34,7 +34,8 @@ label { font-weight: 800; font-size: 14px; }
 .takimlar.birlikte .takim.m { opacity: .4; }
 #ayarlar { display: grid; gap: 6px; }
 #ayarlar label { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-#ayarlar select { padding: 6px 8px; }
+#ayarlar select { padding: 6px 8px; text-align: center; text-align-last: center; }
+#ayarlar option { text-align: center; }
 #ayarlar select:disabled { opacity: .8; color: #241a10; }
 
 /* HUD */
